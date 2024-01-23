@@ -1,0 +1,62 @@
+\documentclass[conference,compsoc]{IEEEtran}
+
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{calc}
+\def\scalecaption{\normalsize}
+
+
+\setcounter{figure}{6}
+
+
+\begin{document}
+
+
+\begin{figure*}[ht]
+    \begin{subfigure}[t]{0.24\textwidth}
+        \includegraphics[width=1.1\linewidth]{sp_workloads/sim/workloads_utility_gm:GM_equal-ncd_04_bar_legend}
+    \end{subfigure}
+%
+    \begin{subfigure}[t]{0.24\textwidth}
+        \includegraphics[width=1.1\linewidth]{sp_workloads/sim/workloads_utility_basic:GM-LM-RR-LSVT_equal-ncd_04_bar_legend}
+    \end{subfigure}
+%
+    \begin{subfigure}[t]{0.24\textwidth}
+        \includegraphics[width=1.1\linewidth]{sp_workloads/sim/workloads_utility_ml:SGD-PATE_equal-ncd_04_bar_legend}
+
+    \end{subfigure}
+%
+    \begin{subfigure}[t]{0.24\textwidth}
+        \includegraphics[width=1.1\linewidth]{sp_workloads/sim/workloads_utility_mixed:GM-LM-RR-LSVT-SGD-PATE_equal-ncd_04_bar_legend}
+    \end{subfigure}
+
+    \vspace{0.2cm}
+
+    \begin{subfigure}[t]{0.24\textwidth}
+        \includegraphics[width=1.1\linewidth]{sp_workloads/sim/workloads_utility_gm:GM_ncd_04_bar_legend}
+        \caption{W1:GM}
+    \end{subfigure}
+%
+    \begin{subfigure}[t]{0.24\textwidth}
+        \includegraphics[width=1.1\linewidth]{sp_workloads/sim/workloads_utility_basic:GM-LM-RR-LSVT_ncd_04_bar_legend}
+        \caption{W2:Mix}
+    \end{subfigure}
+%
+    \begin{subfigure}[t]{0.24\textwidth}
+        \includegraphics[width=1.1\linewidth]{sp_workloads/sim/workloads_utility_ml:SGD-PATE_ncd_04_bar_legend}
+        \caption{W3:ML}
+    \end{subfigure}
+%
+    \begin{subfigure}[t]{0.24\textwidth}
+        \includegraphics[width=1.1\linewidth]{sp_workloads/sim/workloads_utility_mixed:GM-LM-RR-LSVT-SGD-PATE_ncd_04_bar_legend}
+        \caption{W4:All}
+    \end{subfigure}
+    \vspace{-2pt}
+    \caption{
+    Evaluation of Cohere compared to PrivateKube on four allocation approaches on our four workloads.
+    The performance of Cohere with PAs is shown as a darker shade.}
+\end{figure*}
+
+
+
+\end{document}

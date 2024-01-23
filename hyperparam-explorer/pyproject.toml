@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "hyperparam-explorer"
+version = "0.1.0"
+description = ""
+authors = ["Nicolas Küchler <nico.kuechler@protonmail.com>"]
+readme = "README.md"
+packages = [{include = "hyperparam_explorer"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+workload_simulator = {path = "../workload-simulator", develop = true}
+plotly = "^5.18.0"
+dash = "^2.14.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

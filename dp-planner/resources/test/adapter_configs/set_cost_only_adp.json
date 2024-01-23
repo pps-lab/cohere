@@ -1,0 +1,6 @@
+{
+    "privacy_cost": [
+        {"name": "mice", "prob": 0.3, "value": {"EpsDeltaDp": {"eps": 0.01, "delta":  1e-9}}},
+        {"name": "elephant", "prob": 0.7, "value": {"EpsDeltaDp": {"eps": 0.08, "delta":  1e-9 }}}
+    ]
+}

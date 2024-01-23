@@ -1,0 +1,8 @@
+{
+    "privacy_cost": [
+        {"name": "mice", "prob": 0.3, "value": {"EpsDp": {"eps": 0.1}}},
+        {"name": "elephant", "prob": 0.7, "value": {"EpsDp": {"eps": 0.8 }}}
+    ],
+
+    "n_blocks": 1
+}

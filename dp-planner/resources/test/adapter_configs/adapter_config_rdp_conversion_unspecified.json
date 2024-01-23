@@ -1,0 +1,27 @@
+{
+    "privacy_cost": [
+        {"name": "mice", "prob": 0.3, "value": {"EpsDeltaDp": {"eps": 0.1, "delta": 1e-9}}},
+        {"name": "elephant", "prob": 0.7, "value": {"EpsDeltaDp": {"eps": 0.8, "delta": 1e-9 }}}
+    ],
+
+    "n_blocks": 1,
+
+    "profit": [
+        {"name": "mice profit",
+            "privacy_cost_name_pattern": "mice", "n_blocks_name_pattern": "*",
+            "options": [
+                {"name": "low", "prob": 0.6, "value": 10},
+                {"name": "mid", "prob": 0.4, "value": 20}
+                ]
+        },
+        {"name": "elephant profit",
+            "privacy_cost_name_pattern": "elephant", "n_blocks_name_pattern": "*",
+            "options": [
+                {"name": "low", "prob": 0.1, "value": 100},
+                {"name": "mid", "prob": 0.4, "value": 200},
+                {"name": "high", "prob": 0.5, "value": 1000}
+                ]
+        }
+
+    ]
+}

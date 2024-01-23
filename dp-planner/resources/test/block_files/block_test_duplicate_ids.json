@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "request_ids": [1,2],
+    "unlocked_budget": {
+      "EpsDp":{
+        "eps": 1.0
+      }
+    },
+    "created": 0
+  },
+  {
+    "id": 2,
+    "request_ids": [2,3],
+    "unlocked_budget": {
+      "EpsDp":{
+        "eps": 1.0
+      }
+    },
+    "created": 0
+  },
+  {
+    "id": 1,
+    "request_ids": [1,3],
+    "unlocked_budget": {
+      "EpsDp":{
+        "eps": 1.0
+      }
+    },
+    "created": 0
+  }
+]

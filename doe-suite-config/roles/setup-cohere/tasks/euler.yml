@@ -1,0 +1,39 @@
+---
+
+- block:
+
+  - name: Install rustup and cargo
+    ansible.builtin.shell:
+      cmd: curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
+      chdir: "{{ exp_code_dir }}/dp-planner"
+      creates: ~/.cargo/bin/rustup
+
+
+  - name: Install Rust Version
+    ansible.builtin.shell:
+      cmd: ~/.cargo/bin/rustup install {{ rust_version }} && rustup override set {{ rust_version }}
+      chdir: "{{ exp_code_dir }}/dp-planner"
+
+  - name: Build the DP-Planner
+    ansible.builtin.shell:
+      cmd: "module load {{ euler_env }} && {{ cargo_loc }} build --release"
+      chdir: "{{ exp_code_dir }}/dp-planner"
+
+
+  - name: Copy Gurobi Config
+    ansible.builtin.copy:
+      src: "{{ does_config_dir }}/gurobi_config/"
+      dest: "{{ data_dir }}"
+
+  when: play_hosts.index(inventory_hostname) | int == 0 # only execute for first host overall
+
+
+- name: load module
+  ansible.builtin.shell:
+    cmd: "module load {{ euler_env }}"
+
+- name: reset gurobi env variables for euler
+  set_fact:
+    gurobi:
+      home: "/cluster/apps/nss/gurobi/9.5.1/x86_64"
+      ld_library_path: "/cluster/apps/nss/gurobi/9.5.1/x86_64/lib"

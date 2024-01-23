@@ -1,0 +1,127 @@
+# file paths
+# ----------------------
+schema: ~ #"{{ data_dir }}/applications/50-1w-13w/schema.json"
+
+history_file: ~
+history_output_directory: ~
+# if path is defined will generate:
+#  - history_output_directory/block_history.json
+#  - history_output_directory/request_history.json and
+#  - history_output_directory/remaining_requests.json
+# ----------------------
+
+# other
+# ----------------------
+kp_eta: 0.05
+
+measure_runtime: True # we always want to measure the runtime
+
+_cmd_time: >-
+  /usr/bin/time -f '{wall_time: %E, max_rss: %M}' -o results/runtime_info.yaml
+_cmd_gurobi_env: cp {{ data_dir }}/[% my_run.gurobi_env %] gurobi.env
+_cmd_env_vars: GUROBI_HOME={{ gurobi.home }} LD_LIBRARY_PATH={{ gurobi.ld_library_path }} RUST_LOG=info
+_cmd_dp_planner_bin_w_runtime: "[% my_run._cmd_env_vars %] [% my_run._cmd_time if my_run.measure_runtime | default(False) %] {{ exp_code_dir }}/target/release/dp_planner"
+
+
+gen_history:
+  history_size: 0
+
+
+# no adapter
+request_adapter: False
+request_adapter_seed: ~
+privacy_cost: ~
+n_blocks: ~
+profit: ~
+
+#_cmd_generate_blocks_bin: "[% my_run._cmd_env_vars %] {{ exp_code_dir }}/target/release/generate_blocks"
+
+# copy (create simlink) the requests file into the local results such that an allocation can be investigated with things not present in the dp-planner
+requests_file: results/all_requests.json
+blocks_file: results/all_blocks.json
+cmd_link_workload: ln -s [% my_run.src_requests_file %] [% my_run.requests_file %] && ln -s [% my_run.src_blocks_file %] [% my_run.blocks_file %]
+
+
+block_selector_seed_cmd: "--block-selector-seed [% my_run.workload.rep + 1000 %]"
+
+# set `allocation` as one of the keys
+AllocationConfig:
+  greedy: "greedy"
+  dpf: "dpf [% my_run.block_selector_seed_cmd %]"
+  weighted-dpf: "dpf --weighted-dpf [% my_run.block_selector_seed_cmd %]"
+
+  # the + versions consider the remaining budget of selected blocks for computing the (weighted) dominant share
+  dpf+: "dpf --dominant-share-by-remaining-budget [% my_run.block_selector_seed_cmd %]"
+  weighted-dpf+: "dpf --weighted-dpf --dominant-share-by-remaining-budget [% my_run.block_selector_seed_cmd %]"
+
+  dpk-gurobi: "efficiency-based [% my_run.block_selector_seed_cmd %] dpk --eta [% my_run.kp_eta %] --kp-solver gurobi"
+  ilp: "ilp"
+
+cmd_simulation: >-
+  [% my_run.cmd_link_workload %] &&
+  [% my_run._cmd_gurobi_env %] && [% my_run._cmd_dp_planner_bin_w_runtime %]
+  --schema [% my_run.schema %]
+  --requests [% my_run.requests_file if my_run.gen_history.history_size == 0 else my_run.gen_history.requests_file_out %]
+  [% '--request-adapter [% my_run.request_adapter %] --request-adapter-seed [% my_run.request_adapter_seed %]' if my_run.gen_history.history_size == 0 and my_run.request_adapter else '' %]
+  [% '--history  [% my_run.history_file %]' if my_run.gen_history.history_size  == 0 and my_run.history_file is defined  %]
+  [% '--history  [% my_run.gen_history.history_file_out %]' if my_run.gen_history.history_size  != 0 %]
+  --blocks [% my_run.blocks_file if my_run.gen_history.history_size == 0 else my_run.gen_history.blocks_file_out %]
+  --req-log-output results/request_log.csv
+  --round-log-output results/round_log.csv
+  --runtime-log-output results/runtime_log.csv
+  --stats-output results/stats.json
+  [% my_run.simulation.cmd %]
+  [% my_run.AllocationConfig[my_run.allocation] %]
+  [% my_run.composition %]
+  [% my_run.budget.cmd if my_run.gen_history.history_size == 0 and my_run.request_adapter
+  else my_run.budget.cmd | replace('--convert-candidate-request-costs', '')
+  | replace('--convert-block-budgets', '')
+  | replace('--convert-history-request-costs', '') %]
+
+
+simulation:
+  # batch_size: -> can be set, otherwise, will look at created field in requests
+  max_requests: ~
+
+  cmd: >-
+    simulate
+    --timeout-rounds [% my_run.budget.timeout_rounds %]
+#    [% '--max-requests [% my_run.simulation.max_requests %] ' if my_run.simulation.max_requests is not none else '' %]
+
+
+budget:
+
+  # mode: -> always needs to be set: options: Fix, Unlocking
+  ModeConfig:
+    Fix: {}
+    Unlocking:
+      trigger: round
+      n_steps: ~
+      slack: 0.0 # must be between [0, 1]
+
+  #type: -> always needs to be set: options: EpsDeltaDp, EpsDp, RdpFromEpsDeltaDp
+  TypeConfig:
+    EpsDeltaDp:
+      eps: 1
+      delta: 1.0e-07
+    EpsDp:
+      eps: 1
+
+    RdpFromEpsDeltaDp:
+      eps: 1
+      delta: 1.0e-07
+      # 1, 2, 3, 4, 5, 7, 10, 13, 15 len
+      alphas: 1.5 1.75 2 2.5 3 4 5 6 8 16 32 64 1.0e+6
+      convert_candidate_history_block_to_rdp: True
+
+  cmd: >-
+    [% 'fix-budget ' if my_run.budget.mode == 'Fix' else '' %]
+    [% 'unlocking-budget --trigger [% my_run.budget.ModeConfig.Unlocking.trigger %] --slack [% my_run.budget.ModeConfig.Unlocking.slack %] --n-steps [% my_run.budget.ModeConfig.Unlocking.n_steps %]' if my_run.budget.mode == 'Unlocking' else '' %]
+    [% '--epsilon [% my_run.budget.TypeConfig[my_run.budget.type].eps %]' if my_run.budget.TypeConfig[my_run.budget.type].eps is defined %]
+    [% '--delta [% my_run.budget.TypeConfig[my_run.budget.type].delta %]' if my_run.budget.TypeConfig[my_run.budget.type].delta is defined %]
+    [% '--alphas [% my_run.budget.TypeConfig[my_run.budget.type].alphas %]' if my_run.budget.TypeConfig[my_run.budget.type].alphas is defined %]
+    [% '--convert-candidate-request-costs --convert-block-budgets --convert-history-request-costs '
+    if my_run.budget.TypeConfig[my_run.budget.type]['convert_candidate_history_block_to_rdp'] | default(False)
+    else '' %]
+
+n_alphas: "[% my_run.budget.TypeConfig.RdpFromEpsDeltaDp.alphas |replace('.', '') | trim | wordcount %]"

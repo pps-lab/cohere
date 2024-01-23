@@ -1,0 +1,181 @@
+# THE GOAL OF THIS DESIGN IS TO SHOW THE DIFFERENT UNLOCKING STRATEGIES
+
+$SUITE_VARS$:
+  $INCLUDE_VARS$: [sp_scenario.yml, defaults_v2.yml]
+
+  # FOR PA + UNLOCKING ANALYSIS
+
+  workload_profit:
+    $FACTOR$: ["equal-ncd", "ncd"] # ncd, equal
+
+  workload_mode: "poisson" # subsampling only -> no upc
+
+
+  workload:
+    mechanism_mix: ~
+#      $FACTOR$: ["gm:GM", "mixed:GM-LM-RR-LSVT-SGD-PATE", "ml:SGD-PATE", "basic:GM-LM-RR-LSVT"]
+    sub_mix: "sub25100"
+    pa_mix: "defpa"
+
+    name: "[% my_run.workload.mechanism_mix %]-[% my_run.workload.sub_mix %]-[% my_run.workload.pa_mix %]"
+
+    rep:
+      $FACTOR$: [0, 1, 2, 3, 4]
+
+  budget:
+    mode: $FACTOR$
+#      $FACTOR$: ["Fix", "Unlocking"]
+    ModeConfig:
+      Unlocking:
+        slack: $FACTOR$
+#          $FACTOR$: [0.0, 0.2, 0.4, 1.0]
+
+wl_small_mem:
+
+  n_repetitions: 1
+  common_roles: [setup-cohere, data-setup]
+  host_types:
+    gurobi:
+      init_roles: [setup-gurobi]
+      n: 1
+      $CMD$: "[% my_run.cmd_simulation %]"
+
+  base_experiment:
+    gurobi_env: gurobi_4threads_2h.env
+
+    allocation:
+      $FACTOR$: ["dpk-gurobi"] # ["dpk-gurobi", "ilp"]
+    composition:
+      $FACTOR$: ["block-composition", "block-composition-pa"]
+
+    workload:
+      mechanism_mix:
+        $FACTOR$: [gm:GM, ml:SGD-PATE, mixed:GM-LM-RR-LSVT-SGD-PATE, basic:GM-LM-RR-LSVT]
+
+  except_filters:
+  - workload:
+      mechanism_mix: mixed:GM-LM-RR-LSVT-SGD-PATE
+    allocation: ilp
+    composition: block-composition-pa
+  - workload:
+      mechanism_mix: basic:GM-LM-RR-LSVT
+    allocation: ilp
+    composition: block-composition-pa
+
+  factor_levels:
+  - budget:
+      mode: "Fix"
+      ModeConfig:
+        Unlocking:
+          slack: ~ # ignored
+  - budget:
+      mode: "Unlocking"
+      ModeConfig:
+        Unlocking:
+          slack: 0.0
+
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 0.2
+
+# NOTE: This config were already present in sp_workloads
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 0.4
+
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 0.6
+  - budget:
+      mode: "Unlocking"
+      ModeConfig:
+        Unlocking:
+          slack: 0.8
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 1.0
+
+
+#wl_big_mem:
+#
+#  n_repetitions: 1
+#  common_roles: [setup-cohere, data-setup]
+#  host_types:
+#    gurobi_long:
+#      init_roles: [setup-gurobi]
+#      n: 1
+#      $CMD$: "[% my_run.cmd_simulation %]"
+#
+#  base_experiment:
+#    gurobi_env: gurobi_4threads_2h.env
+#
+#    allocation: "ilp"
+#    composition: "block-composition-pa"
+#
+#    workload:
+#      mechanism_mix:
+#        $FACTOR$: ["mixed:GM-LM-RR-LSVT-SGD-PATE", "basic:GM-LM-RR-LSVT"]
+#
+#  factor_levels:
+#  - budget:
+#      mode: "Fix"
+#      ModeConfig:
+#        Unlocking:
+#          slack: ~ # ignored
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 0.0
+## NOTE: These configs were already present in sp_workloads
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 0.2
+##  - budget:
+##      mode: "Unlocking"
+##      ModeConfig:
+##        Unlocking:
+##          slack: 0.4
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 0.6
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 0.8
+#  - budget:
+#      mode: "Unlocking"
+#      ModeConfig:
+#        Unlocking:
+#          slack: 1.0
+#
+
+
+$ETL$:
+
+  overview:
+    experiments: "*"
+    extractors:
+      ErrorInfoExtractor: {}
+      IgnoreExtractor:
+        file_regex: [round_request_summary.csv, runtime_log.csv, round_log.csv, stats.json, all_blocks.json, all_requests.json, stdout.log, gurobi.log, gen_history_.*, request_log.csv]
+      YamlExtractor:
+        file_regex: [runtime_info.yaml]
+    transformers: []
+    loaders:
+      WarningLoader:
+        cols: ["$FACTORS$", "wall_time", "max_rss"]
+        warning_col: "error"

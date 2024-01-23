@@ -1,0 +1,11 @@
+{
+  "attributes": [
+    {
+      "name": "Year_of_Birth",
+      "value_domain":{"min": 1950, "max": 2000}
+    }, {
+      "name": "Year_of_Birth",
+      "value_domain":{"min": 1950, "max": 2000}
+    }
+  ]
+}

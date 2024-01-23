@@ -1,0 +1,9 @@
+[workspace]
+members = ["dp-planner"]
+
+[profile.dev]    # In this profile, special assertions are run
+opt-level = 0    # no optimizations
+debug = true
+
+[profile.release]
+debug = true

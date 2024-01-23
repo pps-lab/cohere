@@ -1,0 +1,74 @@
+# THE GOAL OF THIS DESIGN IS TO SHOW THE ADVANTAGE OF SUBSAMPLING OVER UPC
+
+
+$SUITE_VARS$:
+  $INCLUDE_VARS$: [sp_scenario.yml, defaults_v2.yml]
+
+  workload_profit:
+    $FACTOR$: [equal-ncd, ncd]
+
+
+  sub:
+    $FACTOR$: [0.05, 0.25, 0.45, 0.65, 0.85]
+
+
+  workload:
+    mechanism_mix: ~
+    sub_mix: "sub[% (my_run.sub * 100) | int %]"
+    pa_mix: "defpa"
+
+    name: "[% my_run.workload.mechanism_mix %]-[% my_run.workload.sub_mix %]-[% my_run.workload.pa_mix %]"
+    rep:
+      $FACTOR$: [0, 1, 2, 3, 4]
+
+  budget:
+    ModeConfig:
+      Unlocking:
+        slack:
+          $FACTOR$: [0.4] # [0.2, 0.4]
+
+
+  composition: block-composition
+
+wl_small_mem:
+
+  n_repetitions: 1
+  common_roles: [setup-cohere, data-setup]
+  host_types:
+    gurobi:
+      init_roles: [setup-gurobi]
+      n: 1
+      $CMD$: "[% my_run.cmd_simulation %]"
+
+  base_experiment:
+    gurobi_env: gurobi_4threads_2h.env
+
+    workload_mode:
+      $FACTOR$: [poisson, upc]
+
+    workload:
+      mechanism_mix:
+        $FACTOR$: ["gm:GM", "ml:SGD-PATE",  "mixed:GM-LM-RR-LSVT-SGD-PATE", "basic:GM-LM-RR-LSVT"]
+
+    allocation:
+      $FACTOR$: ["dpk-gurobi"] #["dpk-gurobi", "ilp"]
+
+  except_filters:
+  - allocation: ilp
+    workload_mode: upc
+
+$ETL$:
+
+  overview:
+    experiments: "*"
+    extractors:
+      ErrorInfoExtractor: {}
+      IgnoreExtractor:
+        file_regex: [round_request_summary.csv, runtime_log.csv, round_log.csv, stats.json, all_blocks.json, all_requests.json, stdout.log, gurobi.log, gen_history_.*, request_log.csv]
+      YamlExtractor:
+        file_regex: [runtime_info.yaml]
+    transformers: []
+    loaders:
+      WarningLoader:
+        cols: ["$FACTORS$", "wall_time", "max_rss"]
+        warning_col: "error"

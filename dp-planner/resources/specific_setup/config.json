@@ -1,0 +1,180 @@
+{
+    "$CMD$": {
+        "gurobi": [
+            {
+                "main": " cp ~/gurobi_normal.env gurobi.env &&  GUROBI_HOME=/opt/gurobi951/linux64 LD_LIBRARY_PATH=/opt/gurobi951/linux64/lib RUST_LOG=trace ~/.cargo/bin/cargo run --release --bin dp_planner --quiet --manifest-path /home/ubuntu/code/dp-planner/Cargo.toml -- --schema /home/ubuntu/data/applications/census/schemas/full_schema.json --requests /home/ubuntu/data/applications/census/requests/adapter/requests_1536.json --request-adapter config.json --request-adapter-seed 42 --history /home/ubuntu/data/applications/census/requests/adp/histories/history0_block10/history.json --blocks /home/ubuntu/data/applications/census/requests/adp/histories/history0_block10/blocks.json --req-log-output results/request_log.csv --round-log-output results/round_log.csv --stats-output results/stats.json simulate --batch-size 256  ilp block-composition-pa fix-budget --epsilon 0.5 --delta 1e-07 --alphas 1.5 1.75 2 2.5 3 4 5 6 8 16 32 64 1e6  --convert-candidate-request-costs --convert-block-budgets --convert-history-request-costs"
+            }
+        ]
+    },
+    "allocation": "ilp",
+    "alphas": "1.5 1.75 2 2.5 3 4 5 6 8 16 32 64 1e6",
+    "batch_size": 256,
+    "blocks": "adp/histories/history0_block10/blocks.json",
+    "budget": "fix-budget --epsilon 0.5 --delta 1e-07 --alphas 1.5 1.75 2 2.5 3 4 5 6 8 16 32 64 1e6  --convert-candidate-request-costs --convert-block-budgets --convert-history-request-costs",
+    "budget_part_2": " --convert-candidate-request-costs --convert-block-budgets --convert-history-request-costs",
+    "command_no_budget": "GUROBI_HOME=/opt/gurobi951/linux64 LD_LIBRARY_PATH=/opt/gurobi951/linux64/lib RUST_LOG=trace ~/.cargo/bin/cargo run --release --bin dp_planner --quiet --manifest-path /home/ubuntu/code/dp-planner/Cargo.toml -- --schema /home/ubuntu/data/applications/census/schemas/full_schema.json --requests /home/ubuntu/data/applications/census/requests/adapter/requests_1536.json --request-adapter config.json --request-adapter-seed 42 --history /home/ubuntu/data/applications/census/requests/adp/histories/history0_block10/history.json --blocks /home/ubuntu/data/applications/census/requests/adp/histories/history0_block10/blocks.json --req-log-output results/request_log.csv --round-log-output results/round_log.csv --stats-output results/stats.json simulate --batch-size 256  ilp block-composition-pa",
+    "composition": "block-composition-pa",
+    "copy_gurobi_env": " cp ~/gurobi_normal.env gurobi.env && ",
+    "data_base_dir": "/home/ubuntu/data/applications/census/requests",
+    "delta_budget": 1e-07,
+    "eps_budget": 0.5,
+    "fix_budget": "fix-budget --epsilon 1.0 --delta 1e-7 --alphas 32 --convert-candidate-request-costs --convert-block-budgets --convert-history-request-costs",
+    "fix_budget_no_conversion": "fix-budget --epsilon 1.0 --delta 1e-7 --alphas 32",
+    "fix_budget_part_1": "fix-budget --epsilon 1.0 --delta 1e-7 --alphas",
+    "fix_budget_part_2": "--convert-candidate-request-costs --convert-block-budgets --convert-history-request-costs",
+    "fix_or_unlock": "fix-budget",
+    "gurobi_env": "~/gurobi_normal.env",
+    "history": "adp/histories/history0_block10/history.json",
+    "keep_rejected_requests": null,
+    "n_blocks": [
+        {
+            "name": "few",
+            "prob": 0.3333333333333333,
+            "value": "1"
+        },
+        {
+            "name": "half",
+            "prob": 0.3333333333333333,
+            "value": "5"
+        },
+        {
+            "name": "all",
+            "prob": 0.3333333333333333,
+            "profit": null,
+            "value": "10"
+        }
+    ],
+    "no_pa_inverse_frac": 8,
+    "privacy_cost": [
+        {
+            "name": "mice",
+            "prob": 0.75,
+            "value": {
+                "EpsDeltaDp": {
+                    "delta": 1e-09,
+                    "eps": 0.1
+                }
+            }
+        },
+        {
+            "name": "elephant",
+            "prob": 0.25,
+            "value": {
+                "EpsDeltaDp": {
+                    "delta": 1e-09,
+                    "eps": 0.2
+                }
+            }
+        }
+    ],
+    "profit": [
+        {
+            "n_blocks_name_pattern": "1",
+            "name": "few mice",
+            "options": [
+                {
+                    "prob": 0.9,
+                    "value": 1
+                },
+                {
+                    "prob": 0.1,
+                    "value": 100
+                }
+            ],
+            "privacy_cost_name_pattern": "mice"
+        },
+        {
+            "n_blocks_name_pattern": "5",
+            "name": "half mice",
+            "options": [
+                {
+                    "prob": 0.9,
+                    "value": 5
+                },
+                {
+                    "prob": 0.1,
+                    "value": 500
+                }
+            ],
+            "privacy_cost_name_pattern": "mice"
+        },
+        {
+            "n_blocks_name_pattern": "10",
+            "name": "all mice",
+            "options": [
+                {
+                    "prob": 0.1,
+                    "value": 10
+                },
+                {
+                    "prob": 0.9,
+                    "value": 1000
+                }
+            ],
+            "privacy_cost_name_pattern": "mice"
+        },
+        {
+            "n_blocks_name_pattern": "1",
+            "name": "few elephant",
+            "options": [
+                {
+                    "prob": 0.1,
+                    "value": 4
+                },
+                {
+                    "prob": 0.9,
+                    "value": 400
+                }
+            ],
+            "privacy_cost_name_pattern": "elephant"
+        },
+        {
+            "n_blocks_name_pattern": "5",
+            "name": "half elephant",
+            "options": [
+                {
+                    "prob": 0.1,
+                    "value": 20
+                },
+                {
+                    "prob": 0.9,
+                    "value": 2000
+                }
+            ],
+            "privacy_cost_name_pattern": "elephant"
+        },
+        {
+            "n_blocks_name_pattern": "10",
+            "name": "all elephant",
+            "options": [
+                {
+                    "prob": 0.1,
+                    "value": 40
+                },
+                {
+                    "prob": 0.9,
+                    "value": 4000
+                }
+            ],
+            "privacy_cost_name_pattern": "elephant"
+        }
+    ],
+    "rdp_conversion": [
+        {
+            "Laplacian": {
+                "prob": 0.5
+            }
+        },
+        {
+            "Gaussian": {
+                "prob": 0.5
+            }
+        }
+    ],
+    "request_adapter": "config.json",
+    "requests": "adapter/requests_1536.json",
+    "schema": "/home/ubuntu/data/applications/census/schemas/full_schema.json",
+    "tot_num_blocks": 10,
+    "unlocking_budget": "unlocking-budget --trigger round --n-steps 1000 --epsilon 1.0 --delta 1e-7 --alphas 32 --convert-candidate-request-costs --convert-block-budgets --convert-history-request-costs",
+    "unlocking_budget_no_conversion": "unlocking-budget --trigger round --n-steps 1000 --epsilon 1.0 --delta 1e-7 --alphas 32"
+}

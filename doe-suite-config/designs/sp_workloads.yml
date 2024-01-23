@@ -1,0 +1,129 @@
+# THE GOAL OF THIS DESIGN IS TO SHOW DIFFERENT WORKLOADS
+
+
+$SUITE_VARS$:
+  $INCLUDE_VARS$: [sp_scenario.yml, defaults_v2.yml]
+
+  workload_profit:
+    $FACTOR$: [ncd, equal-ncd] #, ncd, equal
+
+  workload_mode:
+    $FACTOR$: [poisson, upc]
+
+  #sub:
+
+  workload:
+    mechanism_mix: ~
+    #  $FACTOR$: [gm:GM, gmlm:GM-LM, basic:GM-LM-RR-LSVT, mixed:GM-LM-RR-LSVT-SGD-PATE, ml:SGD-PATE]
+    sub_mix: "sub25100"
+    pa_mix: "defpa"
+
+    name: "[% my_run.workload.mechanism_mix %]-[% my_run.workload.sub_mix %]-[% my_run.workload.pa_mix %]"
+    rep:
+      $FACTOR$: [0, 1, 2, 3, 4]
+
+  budget:
+    ModeConfig:
+      Unlocking:
+        slack:
+          $FACTOR$: [0.4]  # [0.2, 0.4]
+
+
+
+wl_small_mem:
+
+  n_repetitions: 1
+  common_roles: [setup-cohere, data-setup]
+  host_types:
+    gurobi:
+      init_roles: [setup-gurobi]
+      n: 1
+      $CMD$: "[% my_run.cmd_simulation %]"
+
+  base_experiment:
+    gurobi_env: gurobi_4threads_2h.env
+
+    allocation:
+      $FACTOR$: [
+                  "greedy",
+                  #"dpf",
+                  #"dpf+",
+                  #"weighted-dpf",
+                  "weighted-dpf+",
+                  "dpk-gurobi",
+                  "ilp"
+                ]
+    composition:
+      $FACTOR$: [block-composition, block-composition-pa]
+
+    workload:
+      mechanism_mix:
+        $FACTOR$: [gm:GM, ml:SGD-PATE, mixed:GM-LM-RR-LSVT-SGD-PATE, basic:GM-LM-RR-LSVT]
+
+  except_filters:
+  # no ilp with user level-paralle composition
+  - allocation: ilp
+    workload_mode: upc
+
+  # no PA w/upc
+  - composition: block-composition-pa
+    workload_mode: upc
+
+  # these are handled by the longer queue
+  - workload:
+      mechanism_mix: mixed:GM-LM-RR-LSVT-SGD-PATE
+    allocation: ilp
+    composition: block-composition-pa
+
+  - workload:
+      mechanism_mix: basic:GM-LM-RR-LSVT
+    allocation: ilp
+    composition: block-composition-pa
+
+
+# mixed workload is complexer and thus requires longer
+wl_big_mem:
+  n_repetitions: 1
+  common_roles: [setup-cohere, data-setup]
+  host_types:
+    gurobi_long: # same memory / cores as gurobi but has a timeout of 24h over all
+      init_roles: [setup-gurobi]
+      n: 1
+      $CMD$: "[% my_run.cmd_simulation %]"
+
+  base_experiment:
+    gurobi_env: gurobi_4threads_2h.env
+
+    allocation:
+      $FACTOR$: [ilp]
+    composition:
+      $FACTOR$: [block-composition-pa]
+
+    workload:
+      mechanism_mix:
+        $FACTOR$: [mixed:GM-LM-RR-LSVT-SGD-PATE, basic:GM-LM-RR-LSVT]
+  except_filters:
+  # no ilp with user level-paralle composition
+  - allocation: ilp
+    workload_mode: upc
+
+  # no PA w/upc
+  - composition: block-composition-pa
+    workload_mode: upc
+
+
+$ETL$:
+
+  overview:
+    experiments: "*"
+    extractors:
+      ErrorInfoExtractor: {}
+      IgnoreExtractor:
+        file_regex: [round_request_summary.csv, runtime_log.csv, round_log.csv, stats.json, all_blocks.json, all_requests.json, stdout.log, gurobi.log, gen_history_.*, request_log.csv]
+      YamlExtractor:
+        file_regex: [runtime_info.yaml]
+    transformers: []
+    loaders:
+      WarningLoader:
+        cols: ["$FACTORS$", "wall_time", "max_rss"]
+        warning_col: "error"

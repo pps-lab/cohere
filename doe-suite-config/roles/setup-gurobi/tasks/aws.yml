@@ -1,0 +1,109 @@
+---
+
+- debug:
+    msg: "running role setup-gurobi..."
+  tags: [print_action]
+
+- name: Update repositories cache and install build-essential and unzip
+  become: True
+  apt:
+    pkg:
+    - openconnect
+    - network-manager-openconnect
+    - python3-pip
+    update_cache: yes
+
+- name: Install vpn-slice
+  ansible.builtin.shell:
+    cmd: sudo pip3 install "vpn-slice[dnspython,setproctitle]"
+    creates: /usr/local/bin/vpn-slice
+
+- name: Test vpn-slice
+  ansible.builtin.shell:
+    cmd: sudo /usr/local/bin/vpn-slice --self-test
+
+# via https://dev.to/nodeselector/retrying-groups-of-tightly-coupled-tasks-in-ansible-579d
+# Can roughly distribute 2-3 licenses per retry - so max_retries should be >= n_servers / 2.
+- name: Try connecting to the vpn and activating the license
+  vars:
+    max_retries: "5"
+    retry_delay: "10"
+  block:
+  - name: Increment the retry count
+    set_fact:
+      retry_count: "{{ 0 if retry_count is undefined else retry_count | int + 1 }}"
+
+  - name: check for gurobi license file and skip activation if that is the case
+    stat:
+      path: "{{ gurobi.license_dir }}/gurobi.lic"
+    register: lic_1
+
+  - name: Disconnect from ETH vpn if still connected
+    ansible.builtin.shell:
+      cmd: sudo killall -SIGINT openconnect || true
+    when: lic_1.stat.islnk is not defined
+
+  - name: Connect to ETH vpn (if this fails, check credentials)
+    expect:
+      command: "sudo openconnect sslvpn.ethz.ch -s '/usr/local/bin/vpn-slice gurobi.com apps.gurobi.com portal.gurobi.com'"
+      responses:
+        GROUP:
+          - "student-net"
+        Username:
+          - "{{ vpn_username }}"
+        Password:
+          - "{{ vpn_password }}"
+    async: 600
+    poll: 0
+    no_log: true
+    when: lic_1.stat.islnk is not defined
+
+  - name: Wait a few seconds until vpn connected
+    wait_for:
+      timeout: 5
+    when: lic_1.stat.islnk is not defined
+
+  - name: Obtain the license file for Gurobi
+    ansible.builtin.expect:
+      command: "{{ gurobi.grbgetkey }} {{ item }}"
+      responses:
+        "In which directory would you like to store the Gurobi license file?": "{{ gurobi.license_dir }}"
+      creates: "{{ gurobi.license_dir }}/gurobi.lic"
+    register: result
+    failed_when: false
+    no_log: True
+    loop: "{{ gurobi_license_grbgetkey }}"
+    when: lic_1.stat.islnk is not defined
+
+  - name: Disconnect from ETH vpn
+    ansible.builtin.shell:
+      cmd: sudo killall -SIGINT openconnect
+    when: lic_1.stat.islnk is not defined
+    ignore_errors: true
+
+  - name: check for gurobi license file again
+    stat:
+      path: "{{ gurobi.license_dir }}/gurobi.lic"
+    register: lic_2
+
+  - name: Check if obtaining license was successful
+    fail:
+      msg="no license found -> obtain a new one and append to variable gurobi_license_grbgetkey"
+    when: lic_2.stat.islnk is not defined
+
+  rescue:
+    - name: Failed to activate Gurobi License
+      fail:
+        msg:  "Something went wrong, cannot activate license:  failed_task={{ ansible_failed_task.name }}  (number of retries exceeded)"
+      when: retry_count | int >= max_retries | int
+
+    - debug:
+        msg: "Task Group failed, let's give it another shot"
+
+    - name: Sleep between retries
+      wait_for:
+        timeout: "{{ retry_delay }}" # seconds
+      delegate_to: localhost
+      become: false
+
+    - include_tasks: aws.yml

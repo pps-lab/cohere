@@ -1,0 +1,136 @@
+
+# make etl-super config=sp_workloads out=../doe-suite-results-super
+
+$SUITE_ID$:
+  sp_workloads: 1690805680
+  sp_unlock: 1690743687
+
+
+$ETL$:
+
+  preprocess:
+    experiments:
+      sp_workloads: [wl_small_mem, wl_big_mem]
+      sp_unlock: [wl_small_mem, wl_big_mem]
+    extractors:
+      PreProcessingDummyExtractor: # uses all available cores to preprocess each job individually and creates an output file in the job output dir
+        file_regex: [stderr.log]
+      IgnoreExtractor:
+        file_regex: [".*.csv$", ".*.json$", ".*.yaml$", "stdout.log", "gurobi.log"]
+    transformers: []
+    loaders: {}
+
+
+  sim:
+    experiments:
+      sp_workloads: [ wl_small_mem, wl_big_mem ]
+    extractors:
+      FilterCsvExtractor:
+        file_regex: [round_request_summary.csv]
+        config_filter:
+          allocation: ["greedy", "weighted-dpf+", "dpk-gurobi", "ilp"]  # pre filter
+      IgnoreExtractor:
+        file_regex: [runtime_log.csv, round_log.csv, request_log.csv, ".*.json$", ".*.yaml$", ".*.log$"]
+    transformers:
+      - name: RoundRequestSummaryTransformer
+      - name: ConcatColumnsTransformer
+        dest: workload_composition_mode
+        src: [workload_mode, composition]
+    loaders:
+      CsvSummaryLoader: {}
+      UtilityPlotLoaderSP:
+        scatter: False
+        show_counts: False
+
+        plot_cols: ["workload.mechanism_mix", "workload_profit", "budget.ModeConfig.Unlocking.slack"]
+        plot_cols_values:
+          workload.mechanism_mix: ["gm:GM", "basic:GM-LM-RR-LSVT", "mixed:GM-LM-RR-LSVT-SGD-PATE", "ml:SGD-PATE"]
+          workload_profit: ["equal-ncd", "ncd"]
+          budget.ModeConfig.Unlocking.slack: ['0.4'] # '0.2'
+
+        group_cols: ["workload_composition_mode"] # workload_composition_mode
+        group_cols_values:
+          workload_composition_mode: ["upc-block-composition", "poisson-block-composition-pa", "poisson-block-composition"]
+        group_cols_indices: [0, 1, 1]
+
+        bar_cols: ["allocation"]
+        bar_cols_values:
+          allocation: [ "greedy", "weighted-dpf+", "dpk-gurobi" ]
+
+        label_lookup:
+          "allocation":
+            "greedy": "FCFS"
+            "weighted-dpf+": "DPF"
+            "dpk-gurobi": "DPK"
+            "ilp": "Upper bound (ILP)"
+
+          "workload_composition_mode":
+            "upc-block-composition": "PrivateKube"
+            "poisson-block-composition": "Cohere"
+            "poisson-block-composition-pa": "Cohere"
+          workload_profit:
+            "equal-ncd": "Request"
+            "ncd": "Utility"
+
+        show_ylabel_col: "workload.mechanism_mix"
+        show_ylabel_values: ["gm:GM"]
+
+        show_legend_idx: ["gm:GM", "ncd", "0.4"]
+
+        show_debug_info: False
+
+
+  sim_round: # WARNING: requires ~18GB of memory
+    experiments:
+      sp_workloads: [wl_small_mem] # , wl_big_mem
+      sp_unlock: [wl_small_mem] #, wl_big_mem
+    extractors:
+      FilterCsvExtractor:
+        file_regex: [round_request_summary.csv]
+        config_filter:
+          allocation: ["dpk-gurobi"] # pre filter
+      IgnoreExtractor:
+        file_regex: [runtime_log.csv, round_log.csv, request_log.csv, ".*.json$", ".*.yaml$", ".*.log$"]
+    transformers:
+      - df.query: { expr: "workload_mode == 'poisson'" }
+      - name: PerRoundSummaryTransformer
+        cols: ['workload.mechanism_mix', 'workload.sub_mix', 'workload.pa_mix']
+    loaders:
+      CsvSummaryLoader: {}
+      PickleSummaryLoader: {}
+      UtilityRoundPlotLoaderSPEmanuel:
+        plot_cols: [ "allocation", "workload.mechanism_mix", "workload_profit" ]
+        plot_cols_values:
+          workload.mechanism_mix: ["gm:GM", "basic:GM-LM-RR-LSVT", "mixed:GM-LM-RR-LSVT-SGD-PATE", "ml:SGD-PATE"]
+          workload_profit: ["ncd"] # [ "ncd", "equal-ncd" ]
+          allocation: ["dpk-gurobi"] #[ "dpk-gurobi", "ilp" ]
+
+        col_cols: ["budget.ModeConfig.Unlocking.slack"]
+        col_cols_values:
+          "budget.ModeConfig.Unlocking.slack": [ '0.0', '0.4', '0.8', '-' ]
+
+        row_cols: ["workload.pa_mix"]
+        row_cols_values:
+          workload.pa_mix: [ "nopa", "defpa"]
+
+        y_col_front: 'profit_accepted_fraction_perround'
+        y_col_back: 'profit_accepted_fraction_cum'
+
+
+  perf:
+    experiments:
+      sp_workloads: [wl_small_mem, wl_big_mem]
+      sp_unlock: [wl_small_mem, wl_big_mem]
+    extractors:
+      YamlExtractor:
+        file_regex: [runtime_info.yaml]
+      CsvExtractor:
+        file_regex: [runtime_log.csv]
+      IgnoreExtractor:
+        file_regex: [round_request_summary.csv, round_log.csv, request_log.csv, ".*.json$", ".*.log$"]
+    transformers: []
+    loaders:
+      PerformancePlotLoaderSP: {}
+      PerformanceV2PlotLoaderSP: {}
+      #CsvSummaryLoader: {}
+      #PickleSummaryLoader: {}

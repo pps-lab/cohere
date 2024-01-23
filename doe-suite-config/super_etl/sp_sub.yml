@@ -1,0 +1,78 @@
+
+# make etl-super config=sp_sub out=../doe-suite-results-super
+
+$SUITE_ID$:
+  sp_sub: 1690826136
+
+
+$ETL$:
+
+  preprocess:
+    experiments:
+      sp_sub: [wl_small_mem, wl_big_mem]
+    extractors:
+      PreProcessingDummyExtractor: # uses all available cores to preprocess each job individually and creates an output file in the job output dir
+        file_regex: [stderr.log]
+      IgnoreExtractor:
+        file_regex: [".*.csv$", ".*.json$", ".*.yaml$", "stdout.log", "gurobi.log"]
+    transformers: []
+    loaders: {}
+
+  sub_line:
+    experiments:
+      sp_sub: [ wl_small_mem, wl_big_mem ]
+    extractors:
+      CsvExtractor:
+        file_regex: [ round_request_summary.csv ]
+      IgnoreExtractor:
+        file_regex: [ runtime_log.csv, round_log.csv, request_log.csv, ".*.json$", ".*.yaml$", ".*.log$" ]
+    transformers:
+      - name: RoundRequestSummaryTransformer
+    loaders:
+      CsvSummaryLoader: { }
+      SubsamplingAdvantagePlotLoaderSP:
+        scatter: True
+        plot_cols: [ "workload_profit", "allocation", "budget.ModeConfig.Unlocking.slack", "workload.mechanism_mix" ]
+        plot_cols_values:
+          workload_profit: [ "ncd", "equal-ncd" ]
+          allocation: ["dpk-gurobi"] # [ "ilp", "dpk-gurobi" ]
+          "budget.ModeConfig.Unlocking.slack": ['0.4'] #[ '0.2', '0.4' ]
+          workload.mechanism_mix: ["gm:GM", "basic:GM-LM-RR-LSVT"] # [ "gm:GM", "ml:SGD-PATE", "basic:GM-LM-RR-LSVT", "mixed:GM-LM-RR-LSVT-SGD-PATE" ]
+
+        group_cols: [ "workload.sub_mix" ]
+        group_cols_values:
+          workload.sub_mix: [ 'sub5', 'sub25', 'sub45', 'sub65', 'sub85' ]
+
+        # Potentially also add different utility/n_request optimization difference
+        line_cols: [ "workload_mode" ]
+        line_cols_values:
+          workload_mode: [ "upc", "poisson" ]
+
+        # Potentially also add different utility/n_request optimization difference
+        linestyle_cols: []
+        linestyle_cols_values: {} #        colors: [ '#0000FF', '#ADD8E6', '#008000', '#90EE90', '#8B0000', '#FF7F7F', '#800080', '#E6E6FA' ]
+
+        label_lookup:
+          workload_mode:
+            upc: "UPC"
+            poisson: "Subsampling"
+          workload.sub_mix:
+            sub5: 5 #%
+            sub25: 25 #%
+            sub45: 45 #%
+            sub65: 65 #%
+            sub85: 85 #%
+          workload_profit:
+            equal-ncd: "Request [%]"
+            ncd: "Utility [%]"
+
+        show_ylabel_col: "workload.mechanism_mix" #"workload_profit"
+        show_ylabel_values: ["gm:GM"] #[ "equal-ncd" ]
+
+        show_xlabel_col: "workload_profit"
+        show_xlabel_values: ["ncd"]
+
+        show_legend_col:
+          workload.mechanism_mix: ["basic:GM-LM-RR-LSVT"]
+          workload_profit: ["equal-ncd"]
+#        show_debug_info: True

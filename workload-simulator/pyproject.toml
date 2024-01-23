@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "workload-simulator"
+version = "0.1.0"
+description = ""
+authors = ["Nicolas Küchler <nico.kuechler@protonmail.com>"]
+readme = "README.md"
+packages = [{include = "workload_simulator"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+scipy = ">=1.7.3, <=1.7.3"
+simpy = "^4.0.1"
+autodp = { git = "https://github.com/yuxiangw/autodp", branch = "master" }
+pandas = ">=1.2.0,<2.0.0"
+tqdm = "^4.65.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

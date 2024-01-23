@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "request-adapter"
+version = "0.1.0"
+description = ""
+authors = ["Nicolas Küchler <nico.kuechler@protonmail.com>"]
+readme = "README.md"
+packages = [{include = "request_adapter"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.11"
+workload_simulator = {path = "../workload-simulator", develop = true}
+autodp = { git = "https://github.com/yuxiangw/autodp", branch = "master" }
+tmlt-analytics = "^0.8.0"
+torch = {version = "2.0.1", source = "torchcpu1130"}
+opacus = "^1.4.0"
+torchvision = "^0.15.2+cpu"
+pytest = "^7.4.3"
+
+
+[[tool.poetry.source]]
+name = "torchcpu1130"
+url = "https://download.pytorch.org/whl/cpu/"
+priority = "supplemental"
+
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

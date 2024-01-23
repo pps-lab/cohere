@@ -1,0 +1,3 @@
+[submodule "doe-suite"]
+	path = doe-suite
+	url = git@github.com:nicolas-kuechler/doe-suite.git

@@ -1,0 +1,27 @@
+scenario: "40-1w-12w"
+
+data_base_dir:  "{{ data_dir }}/applications/[% my_run.scenario %]"
+schema: "[% my_run.data_base_dir %]/schema.json"
+
+workload_dir: "[% my_run.data_base_dir %]/[% my_run.workload.name %]/[% my_run.workload_profit %]_[% my_run.workload_mode %]"
+src_requests_file: "[% my_run.workload_dir %]/requests_[% my_run.workload.rep %].json"
+src_blocks_file: "[% my_run.workload_dir %]/blocks_[% my_run.workload.rep %].json"
+
+
+
+budget:
+  mode: Unlocking # NOTE: Can be set to "Fix" to remove unlocking
+  type: RdpFromEpsDeltaDp
+  TypeConfig:
+    RdpFromEpsDeltaDp:
+      eps: 3.
+      delta: 1.0e-07
+      alphas: 1.5 1.75 2 2.5 3 4 5 6 8 16 32 64 1e6 1e10 # NOTE w/ or w/o 1e16 -> new: 1e10 was 1e16
+
+  timeout_rounds: 1 # How many attempts are made to allocate a request (1 corresponds to the no longer supported keep-rejected-requests: false)
+
+  ModeConfig:
+    Unlocking:
+      trigger: round
+      n_steps: 12 # unlock over 12 steps
+      slack: 0.0 # $FACTOR$: [0.0, 0.2]

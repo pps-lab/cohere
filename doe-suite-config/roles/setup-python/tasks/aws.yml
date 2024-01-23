@@ -1,0 +1,42 @@
+---
+
+- name: Update repositories cache and install required packages
+  become: True
+  apt:
+    pkg:
+    - python3.9
+    - python3.9-venv
+    update_cache: yes
+
+
+- name: Download get-pip.py
+  ansible.builtin.get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp/get-pip.py
+
+- name: Install pip for python (via script)
+  ansible.builtin.shell:
+    cmd: python3.9 /tmp/get-pip.py
+
+# curl -sSL https://install.python-poetry.org python3 -
+- name: Download install-poetry.py
+  ansible.builtin.get_url:
+    url: https://install.python-poetry.org/install-poetry.py
+    dest: /tmp/install-poetry.py
+
+- name: Install poetry with script install-poetry.py
+  ansible.builtin.shell:
+    cmd: python3.9 /tmp/install-poetry.py
+
+- name: make path to poetry available in variable
+  set_fact:
+    poetry: /home/ubuntu/.local/bin/poetry
+
+- name: Set config to create .venv folder in project directory
+  ansible.builtin.shell:
+    cmd: "{{ poetry }} config virtualenvs.in-project true"
+
+- name: Install python packages with poetry (-> afterward can run {{ poetry }} run python demo.py)
+  ansible.builtin.shell:
+    cmd: "{{ poetry }} install"
+    chdir: "{{ exp_code_dir }}/demo_project"

@@ -1,0 +1,50 @@
+---
+
+
+- debug:
+    msg: "running role data-setup..."
+  tags: [print_action]
+
+
+- name: Create data directory
+  ansible.builtin.file:
+      path: "{{ data_dir }}"
+      state: directory
+      mode: 0755
+      #group: "{{ euler_user if cloud == 'euler' else 'ubuntu' }}"
+      #owner: "{{ euler_user if cloud == 'euler' else 'ubuntu' }}"
+
+
+#################################
+# Load Data from S3
+#################################
+
+
+- name: When running experiments on AWS, then the data needs to be downloaded from AWS
+  assert:
+    that: download_data_from_aws
+
+
+
+- name: create s3 download link
+  command: >
+    aws s3 presign
+    s3://privacy-management-data/applications.zip --region {{ exp_base.aws_region }} --expires-in 60
+  delegate_to: localhost
+  register: s3_applications_url
+
+- name: Download from S3
+  get_url:
+    url="{{ s3_applications_url.stdout }}"
+    dest="{{ data_dir }}"
+
+- name: unarchive data
+  unarchive:
+    src={{ data_dir }}/applications.zip
+    dest={{ data_dir }}
+    remote_src=yes
+
+- name: Remove applications.zip
+  file:
+    path: "{{ data_dir }}/applications.zip"
+    state: absent

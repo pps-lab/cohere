@@ -1,0 +1,109 @@
+{
+    "privacy_cost": [
+        {"name": "mice", "prob": 0.75, "value": {"EpsDeltaDp": {"eps": 0.2, "delta": 1e-9}}},
+        {"name": "elephant", "prob": 0.25, "value": {"EpsDeltaDp": {"eps": 0.8,
+            "delta": 1e-9
+        }}}
+    ],
+
+    "n_blocks": [
+        {"prob": 0.333333333333333333, "value": 1},
+        {"prob": 0.333333333333333333, "value": 5},
+        {"prob": 0.333333333333333333, "value": 10}
+    ],
+
+    "profit": [
+        {
+            "name": "single mice",
+            "privacy_cost_name_pattern": "mice",
+            "n_blocks_name_pattern": "1",
+            "options": [
+                {
+                    "prob": 0.9,
+                    "value": 1
+                },
+                {
+                    "prob": 0.1,
+                    "value": 100
+                }
+            ]
+        },
+        {
+            "name": "half mice",
+            "privacy_cost_name_pattern": "mice",
+            "n_blocks_name_pattern": "5",
+            "options": [
+                {
+                    "prob": 0.9,
+                    "value": 5
+                },
+                {
+                    "prob": 0.1,
+                    "value": 500
+                }
+            ]
+        },
+        {
+            "name": "all mice",
+            "privacy_cost_name_pattern": "mice",
+            "n_blocks_name_pattern": "10",
+            "options": [
+                {
+                    "prob": 0.9,
+                    "value": 10
+                },
+                {
+                    "prob": 0.1,
+                    "value": 1000
+                }
+            ]
+        },
+        {
+            "name": "single elephant",
+            "privacy_cost_name_pattern": "elephant",
+            "n_blocks_name_pattern": "1",
+            "options": [
+                {
+                    "prob": 0.9,
+                    "value": 4
+                },
+                {
+                    "prob": 0.1,
+                    "value": 400
+                }
+            ]
+        },
+        {
+            "name": "half elephant",
+            "privacy_cost_name_pattern": "elephant",
+            "n_blocks_name_pattern": "5",
+            "options": [
+                {
+                    "prob": 0.9,
+                    "value": 20
+                },
+                {
+                    "prob": 0.1,
+                    "value": 2000
+                }
+            ]
+        },
+        {
+            "name": "all elephant",
+            "privacy_cost_name_pattern": "elephant",
+            "n_blocks_name_pattern": "10",
+            "options": [
+                {
+                    "prob": 0.9,
+                    "value": 40
+                },
+                {
+                    "prob": 0.1,
+                    "value": 4000
+                }
+            ]
+        }
+    ],
+
+    "no_pa_inverse_frac": 8
+}

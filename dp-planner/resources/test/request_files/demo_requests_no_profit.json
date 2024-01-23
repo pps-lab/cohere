@@ -1,0 +1,48 @@
+[
+  {
+
+    "request_id": 5,
+    "request_cost": {"Rdp": {"eps_values":[1,2,3,4,5]}},
+    "n_users": 1000,
+    "_comment": "Swiss People born in 2000-2001 and German People born in 1990-1991",
+    "dnf": {
+      "conjunctions":  [
+        {
+          "predicates": {
+            "Country": {"Eq": "Switzerland"},
+            "Year_of_Birth": {"In": [1999, 2000]}
+          }
+        },
+        {
+          "predicates": {
+            "Country": {"Eq": "Germany"},
+            "Year_of_Birth": {"In": [1990, 1991]}
+          }
+        }
+      ]
+    }
+  },
+  {
+
+    "request_id": 10,
+    "request_cost": {"Rdp": {"eps_values":[1,2,3,4,5]}},
+    "n_users": 1000,
+    "_comment": "Swiss People born in 1990-2000 and German People not born in 1990",
+    "dnf": {
+      "conjunctions":  [
+        {
+          "predicates": {
+            "Country": {"Eq": "Switzerland"},
+            "Year_of_Birth": {"Between": {"min": 1990, "max":  2000}}
+          }
+        },
+        {
+          "predicates": {
+            "Country": {"Eq": "Germany"},
+            "Year_of_Birth": {"Neq": 1990}
+          }
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,69 @@
+---
+
+- block:
+  - name: Create data directory
+    ansible.builtin.file:
+        path: "{{ data_dir }}"
+        state: directory
+        mode: 0755
+        #group: "{{ euler_user if cloud == 'euler' else 'ubuntu' }}"
+        #owner: "{{ euler_user if cloud == 'euler' else 'ubuntu' }}"
+
+
+  #################################
+  # Load Data from S3
+  #################################
+
+  - name: create s3 download link
+    command: >
+      aws s3 presign
+      s3://privacy-management-data/applications.zip --region {{ exp_base.aws_region }} --expires-in 60
+    delegate_to: localhost
+    register: s3_applications_url
+    when: download_data_from_aws
+
+  - name: Download from S3
+    get_url:
+      url="{{ s3_applications_url.stdout }}"
+      dest="{{ data_dir }}"
+    when: download_data_from_aws
+
+
+  - name: Check if the file exists
+    stat:
+      path: "{{ data_dir }}/applications.zip"
+    register: file_info
+    when: not download_data_from_aws
+
+  - name: Fail task if file does not exist
+    fail:
+      msg: "The file '{{ data_dir }}/applications.zip' does not exist."
+    when: not download_data_from_aws and not file_info.stat.exists
+
+
+  - name: unarchive data
+    unarchive:
+      src={{ data_dir }}/applications.zip
+      dest={{ data_dir }}
+      remote_src=yes
+
+#  - name: Remove applications.zip
+#    file:
+#      path: "{{ data_dir }}/applications.zip"
+#      state: absent
+
+  - name: Ensure a file exists
+    file:
+      path: "{{ data_dir }}/ready_{{ suite_id }}"
+      state: touch
+
+
+  # only execute the role once
+  when: play_hosts.index(inventory_hostname) | int == 0 # only execute for first host overall
+
+
+- name: Wait for the file to exist
+  wait_for:
+    path: "{{ data_dir }}/ready_{{ suite_id }}"
+    state: present
+    timeout: 600 #seconds

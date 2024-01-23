@@ -1,0 +1,19 @@
+---
+
+- block:
+
+    - name: Install poetry
+      ansible.builtin.shell:
+        cmd: module load {{ euler_env }} && curl -sSL https://install.python-poetry.org | POETRY_HOME={{ remote.dir }}/.local/share/pypoetry python3 -
+
+    - name: make path to poetry available in variable
+      set_fact:
+        poetry: "{{ remote.dir }}/.local/share/pypoetry/venv/bin/poetry"
+
+    - name: Set config to create .venv folder in project directory
+      ansible.builtin.shell:
+        cmd: "module load {{ euler_env }} && {{ poetry }} config virtualenvs.in-project true --local && {{ poetry }} install"
+        chdir: "{{ exp_code_dir }}"
+
+  # only execute the role once
+  when: hostvars['localhost'].suite_hosts_lst | selectattr('init_roles', 'issuperset', ['setup-python']) | map(attribute='instance_id') | first == inventory_hostname

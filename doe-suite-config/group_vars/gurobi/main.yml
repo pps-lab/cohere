@@ -1,0 +1,21 @@
+---
+
+instance_type: c5.4xlarge
+ec2_volume_size: 500
+
+ec2_image_id:  ami-05334fd6e6598fadd
+ec2_volume_snapshot: snap-05ebc475c58079b7e
+
+euler_job_minutes: 240 # -> 4h
+euler_cpu_cores: 16
+euler_cpu_mem_per_core_mb: 1024 # -> this is memory per core
+
+euler_gpu_number: 0
+euler_gpu_min_mem_per_gpu_mb: 0
+euler_gpu_model: ~
+euler_env: gcc/8.2.0 python/3.9.9 gurobi/9.5.1
+
+euler_scratch_dir: "/cluster/scratch/{{ euler_user }}"
+
+
+attach_eni: True

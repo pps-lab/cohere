@@ -1,0 +1,51 @@
+---
+
+- debug:
+    msg: "running role setup-cohere (may take a while)..."
+  tags: [print_action]
+
+- name: Update repositories cache and install build-essential and unzip
+  become: True
+  apt:
+    pkg:
+    - build-essential
+    - unzip
+    - diffutils
+    - m4
+    - python3-pip
+    update_cache: yes
+
+
+- name: Install rustup and cargo
+  ansible.builtin.shell:
+    cmd: curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
+    chdir: "{{ exp_code_dir }}/dp-planner"
+    creates: ~/.cargo/bin/rustup
+
+- name: Install Rust Version
+  ansible.builtin.shell:
+    cmd: ~/.cargo/bin/rustup install {{ rust_version }} && ~/.cargo/bin/rustup override set {{ rust_version }}
+    chdir: "{{ exp_code_dir }}/dp-planner"
+
+- name: Download Gurobi and unarchive
+  become: True
+  ansible.builtin.unarchive:
+    src:  "{{ gurobi.download }}"
+    dest: "{{ gurobi.dest }}"
+    remote_src: yes
+
+
+- name: Build the DP-Planner
+  ansible.builtin.shell:
+    cmd: "{{ cargo_loc }} build --release"
+    chdir: "{{ exp_code_dir }}/dp-planner"
+  environment:
+    GUROBI_HOME: "{{ gurobi.home }}"
+    LD_LIBRARY_PATH: "{{ gurobi.ld_library_path }}"
+  tags: [print_action]
+
+
+- name: Copy Gurobi Config
+  ansible.builtin.copy:
+    src: "{{ does_config_dir }}/gurobi_config/"
+    dest: "{{ data_dir }}"
