@@ -1,9 +1,5 @@
 [![ArXiv][arxiv-shield]][arxiv-url]
-<!--TODO: Bring back once we have an IEEE publish
 [![IEEE][ieee-shield]][ieee-url]
--->
-
-
 
 
 <!-- PROJECT LOGO -->
@@ -21,7 +17,7 @@
   </p>
 
 
-  N. Kuchler, E. Opel, H. Lycklama, A. Viand, and A. Hithnawi,
+  N. Küchler, E. Opel, H. Lycklama, A. Viand, and A. Hithnawi,
   "Cohere: Managing Differential Privacy in Large Scale Systems" <br>
 in 2024 IEEE Symposium on Security and Privacy (SP), San Francisco, CA, USA, 2024
 
@@ -35,15 +31,18 @@ Bibtex
 
 
 ```
-@INPROCEEDINGS {cohere,
-    author = {N. Kuchler and E. Opel and H. Lycklama and A. Viand and A. Hithnawi},
+@INPROCEEDINGS {Kuchler2024-dpcohere,
+    author = {Küchler, Nicolas and Opel, Emanuel and Lycklama, Hidde and Viand, Alexander and Hithnawi, Anwar},
     booktitle = {2024 IEEE Symposium on Security and Privacy (SP)},
     title = {Cohere: Managing Differential Privacy in Large Scale Systems},
     year = {2024},
     volume = {},
-    issn = {},
+    issn = {2375-1207},
+    pages = {122-122},
+    url = {https://doi.ieeecomputersociety.org/10.1109/SP54263.2024.00122},
     publisher = {IEEE Computer Society},
     address = {Los Alamitos, CA, USA},
+    month = {may}
 }
 ```
 
@@ -96,9 +95,7 @@ To reproduce the paper's results on AWS or a SLURM-based scientific compute clus
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [arxiv-shield]: https://img.shields.io/badge/arXiv-2301.08517-green?style=for-the-badge&logo=arxiv
-
 [arxiv-url]: https://arxiv.org/abs/2301.08517
 
-<!--TODO: Update to Cohere -->
 [ieee-shield]: https://img.shields.io/badge/IEEE-SP46215.2023.10179400-informational?style=for-the-badge&logo=ieee&link=https://www.computer.org/csdl/proceedings-article/sp/2023/933600a453/1OXH4IzyXF6
-[ieee-url]: https://www.computer.org/csdl/proceedings-article/sp/2023/933600a453/1OXH4IzyXF6
+[ieee-url]: https://doi.ieeecomputersociety.org/10.1109/SP54263.2024.00122
